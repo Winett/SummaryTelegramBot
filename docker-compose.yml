@@ -1,0 +1,72 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: summary_bot_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - bot_net
+
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: summary_bot_db
+    restart: unless-stopped
+    environment:
+#      POSTGRES_USER: ВВЕСТИ СВОЕГО ПОЛЬЗОВАТЕЛЯ
+#      POSTGRES_PASSWORD: ВВЕСТИ СВОЙ ПАРОЛЬ
+#      POSTGRES_DB: ВВЕСТИ СВОЮ БД
+      POSTGRES_USER:
+      POSTGRES_PASSWORD:
+      POSTGRES_DB:
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "9345:5432"
+    networks:
+      - bot_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    command: >
+      postgres
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c effective_cache_size=768MB
+
+  redis:
+    image: redis:7-alpine
+    container_name: summary_bot_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "8724:6379"
+    networks:
+      - bot_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  bot_net:
+    driver: bridge

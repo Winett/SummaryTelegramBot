@@ -1,0 +1,9 @@
+
+class ServiceException(Exception):
+    ...
+
+class MessageServiceException(ServiceException):
+    ...
+
+class MessageAlreadyExists(MessageServiceException):
+    ...
