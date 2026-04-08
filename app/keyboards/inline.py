@@ -139,5 +139,32 @@ def work_with_llm_settings():
             callback_data="llm_update_model"
         )
     )
+    keyboard.row(
+        InlineKeyboardButton(
+            text="Работа с промтом",
+            callback_data="llm_promt"
+        )
+    )
 
+    return keyboard.as_markup()
+
+def update_llm_promt_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardBuilder()
+    keyboard.row(
+        InlineKeyboardButton(
+            text="Обновить промт",
+            callback_data="update_llm_promt"
+        )
+    )
+
+    return keyboard.as_markup()
+
+def cancel_keyboad():
+    keyboard = InlineKeyboardBuilder()
+    keyboard.row(
+        InlineKeyboardButton(
+            text="Отмена",
+            callback_data="cancel"
+        )
+    )
     return keyboard.as_markup()

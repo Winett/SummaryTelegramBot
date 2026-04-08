@@ -73,28 +73,24 @@ async def _process_single_chat(
                 llm = LLMClient(
                     http_client=http_client,
                     api_key=settings.openrouter_api_key,
-                    model_id=model.llm_id,
+                    model_name=model.llm_id,
                     max_context_tokens=model.context_length,
                 )
                 summary_service = SummaryService(session, llm)
 
-                summary = await asyncio.wait_for(
-                    summary_service.get_summary_chat(
-                        chat_id=chat_id,
-                        date_start=date_start,
-                        date_end=date_end,
-                        force_single_chunk=False,
-                    ),
-                    timeout=LLM_REQUEST_TIMEOUT,
-                )
+                summary = await summary_service.get_summary_chat(
+                        chat_local_id=chat_id,
+                        start_date=date_start,
+                        end_date=date_end,
+                    )
 
-                msg_prefix = f"📊 Саммари для чата \"{chat_title}\"\n\n"
+                # msg_prefix = f"📊 Саммари для чата \"{chat_title}\"\n\n"
 
                 for target_chat in chats_to_send:
                     try:
                         await bot.send_message(
                             chat_id=target_chat.telegram_id,
-                            text=msg_prefix + summary.__str__(chat_id=chat.telegram_id, use_html=True),
+                            text=summary,
                             parse_mode=ParseMode.HTML,
                             disable_web_page_preview=True,
                         )
@@ -102,7 +98,6 @@ async def _process_single_chat(
                     except TelegramRetryAfter as e:
                         logger.warning(f"⏳ [{chat_title}] Rate limit: ждём {e.retry_after}с")
                         await asyncio.sleep(e.retry_after + 1)
-                        await bot.send_message(...)  # Повтор
                     except TelegramBadRequest as e:
                         logger.error(f"❌ [{chat_title}] Ошибка отправки в {target_chat.telegram_id}: {e}")
                         continue
@@ -138,9 +133,6 @@ async def generate_daily_summary(bot: Bot, http_client: ClientSession):
             date_start=date_start,
             date_end=date_end,
         )
-        print(chats_to_process)
-        print(date_start)
-        print(date_end)
 
     if not chats_to_process:
         logger.info("ℹ️ Нет чатов с сообщениями за период — ничего не генерируем")

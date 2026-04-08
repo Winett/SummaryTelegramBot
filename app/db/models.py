@@ -60,6 +60,10 @@ class Message(Base):
         Index('ix_messages_chat_created', 'chat_id', 'sent_at'),
     )
 
+    @property
+    def message_to_llm(self) -> str:
+        return f"[{self.sent_at}] (tg_id:{self.user.telegram_id}) (msg_id:{self.telegram_message_id}): {self.text.strip()}"
+
 
 class Summary(Base):
     __tablename__ = "summaries"
@@ -104,3 +108,4 @@ class ModelSettings(Base):
     name = Column(String(255), nullable=True)
     context_length = Column(Integer, nullable=True)
     price_competition = Column(Float, nullable=True)
+    promt = Column(Text, nullable=True)

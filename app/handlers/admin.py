@@ -1,6 +1,6 @@
 from aiogram.enums import ChatType
 from aiogram.types import Message, CallbackQuery
-from app.keyboards.inline import chats_keyboard, work_with_chat, admin_keyboard, work_with_admins, work_with_llm_settings
+from app.keyboards.inline import chats_keyboard, work_with_chat, admin_keyboard, work_with_admins, work_with_llm_settings, update_llm_promt_keyboard, cancel_keyboad
 
 from app.states.admin import AdminAddState, AdminRemoveState
 from aiogram.fsm.context import FSMContext
@@ -11,7 +11,7 @@ from ..services.admin_service import AdminService
 from ..services.chat_service import ChatService
 from ..services.llm_service import LLMService
 from ..services.model_settings_service import ModelSettingsService
-from app.states.llm_settings import SettingModelLLMState
+from app.states.llm_settings import SettingModelLLMState, UpdateLLMPromt
 
 from app.core.config import settings
 
@@ -148,6 +148,33 @@ async def llm_update_model(message: Message, state: FSMContext, model_settings_s
             await message.answer("Новая модель установлена")
             return
     await message.answer("Не удалось найти такую модель")
+
+@admin_router.callback_query(F.data == "llm_promt")
+async def llm_promt(query: CallbackQuery, state: FSMContext, model_settings_service: ModelSettingsService):
+    await query.answer()
+    model_settings = await model_settings_service.get_model()
+    await query.message.answer(f"Текущий промт для саммари:\n\n {model_settings.promt}\n------------------------------------\nПеред промтом вставляется: название чата, телеграм чат айди\n\nПосле промта вставляется история чата", reply_markup=update_llm_promt_keyboard())
+
+@admin_router.callback_query(F.data == "update_llm_promt")
+async def update_llm_promt_command(query: CallbackQuery, state: FSMContext):
+    await query.answer()
+    await query.message.answer(f"Введите новый промт", reply_markup=cancel_keyboad())
+    await state.set_state(UpdateLLMPromt.waiting_promt)
+
+@admin_router.callback_query(F.data == "cancel")
+async def cancel(query: CallbackQuery, state: FSMContext):
+    await query.answer("Действие отменено")
+    await query.message.delete()
+    await state.clear()
+
+@admin_router.message(UpdateLLMPromt.waiting_promt)
+async def update_llm_promt(message: Message, state: FSMContext, model_settings_service: ModelSettingsService):
+    promt = message.text
+    await state.clear()
+    await model_settings_service.update_promt(promt)
+    model_settings = await model_settings_service.get_model()
+    await message.answer(f"Текущий промт: \n{model_settings.promt}\n------------------------------------\nПеред промтом вставляется: название чата, телеграм чат айди\n\nПосле промта вставляется история чата")
+
 
 
 

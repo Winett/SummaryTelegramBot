@@ -24,6 +24,16 @@ class ModelSettingsService:
             logger.error(f"Ошибка обновления модели для использования")
         return False
 
+    async def update_promt(self, promt: str) -> bool:
+        model = await self.get_model()
+        model.promt = promt
+        try:
+            await self.session.commit()
+            return True
+        except Exception:
+            logger.error(f"Ошибка при обновлении промта в нстройках")
+            return False
+
     async def set_model_if_not_exists(self, llm_id: str, name: str, context_length: int, price_competition: float) -> bool:
         model = await self.get_model()
         if model:

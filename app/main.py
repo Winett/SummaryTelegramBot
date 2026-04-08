@@ -77,7 +77,7 @@ def setup_scheduler(
 
     scheduler.add_job(
         func=generate_daily_summary,
-        trigger=CronTrigger(hour=0, minute=0),
+        trigger=CronTrigger(hour=10, minute=43),
         id="daily_summary_task",
         name="Генерация ежедневных саммари",
         kwargs={
@@ -87,6 +87,7 @@ def setup_scheduler(
         misfire_grace_time=3600,
         max_instances=1,
         replace_existing=True,
+        timezone=timezone(timedelta(hours=3))
     )
 
     scheduler.start()

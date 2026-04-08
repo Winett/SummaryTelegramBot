@@ -187,7 +187,7 @@ async def summary_today(query: CallbackQuery, state: FSMContext, chat_service: C
         chat = await chat_service.get_chat_by_telegram_id(tg_chat_id)
         now = datetime.now(timezone(timedelta(hours=3))) - timedelta(days=2)
         await query.message.edit_text("⏳ Ожидание ответа от нейронки...")
-        response = await summary_service.get_summary_chat(chat_id=chat.id, date_start=now.replace(hour=0, minute=0, second=0, microsecond=0), date_end=now)
+        response = await summary_service.get_summary_chat(chat_local_id=chat.id, start_date=now.replace(hour=0, minute=0, second=0, microsecond=0), end_date=now)
 
         try:
             await query.message.edit_text(
@@ -217,9 +217,9 @@ async def summary_today(query: CallbackQuery, state: FSMContext, chat_service: C
 
         try:
             response = await summary_service.get_summary_chat(
-                chat_id=chat.id,
-                date_start=week_start,
-                date_end=now
+                chat_local_id=chat.id,
+                start_date=week_start,
+                end_date=now
             )
         except TimeoutError:
             await query.message.edit_text("❌ Вышло время генерации")
@@ -339,13 +339,13 @@ async def process_manual_summary_date(
 
     try:
         summary = await summary_service.get_summary_chat(
-            chat_id=chat_db_id,  # ✅ ID в БД
-            date_start=date_start,
-            date_end=date_end,
+            chat_local_id=chat_db_id,  # ✅ ID в БД
+            start_date=date_start,
+            end_date=date_end,
         )
 
         chat = await chat_service.get_chat_by_telegram_id(tg_chat_id)
-        message_text = f"Саммари для чата \"{chat.title}\"\n" + summary.__str__(chat_id=tg_chat_id)
+        message_text = summary
 
         await message.answer(
             text=message_text,

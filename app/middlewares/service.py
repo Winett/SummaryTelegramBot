@@ -39,7 +39,7 @@ class ServiceMiddleware(BaseMiddleware):
         data['chat_service'] = chat_service
         data['message_service'] = MessageService(session, chat_service)
         data['model_settings_service'] = model_setting_service
-        data['summary_service'] = SummaryService(session, LLMClient(self.http_client, api_key=settings.openrouter_api_key, model_id=model.llm_id, max_context_tokens=model.context_length))
+        data['summary_service'] = SummaryService(session, LLMClient(self.http_client, api_key=settings.openrouter_api_key, model_name=model.llm_id, max_context_tokens=model.context_length))
         data['admin_service'] = AdminService(session, cache=AdminCache(self.redis))
         data['llm_service'] = LLMService(self.http_client)
 
