@@ -77,7 +77,7 @@ def setup_scheduler(
 
     scheduler.add_job(
         func=generate_daily_summary,
-        trigger=CronTrigger(hour=10, minute=43),
+        trigger=CronTrigger(hour=0, minute=0),
         id="daily_summary_task",
         name="Генерация ежедневных саммари",
         kwargs={
